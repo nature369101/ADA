@@ -1,130 +1,145 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
+//minimum spanning tree using prims algorithm 
+#include<stdio.h>
+#include<stdlib.h>
+#include<limits.h>
 
-#define MAX 100
-#define INF 9999
+typedef struct edge{
+    int v,u,dist;
+}edg;
 
-int graph[MAX][MAX], visited[MAX], count = 0;
+edg heap[10],vt[10];
+int n,cost[10][10],visited[10],removed[10],cnt=0,heapSize=0,heapCount,graphCount;
 
-// Function to perform Prim's algorithm
-void prim(int n) {
-    int parent[MAX];  // Array to store the MST
-    int key[MAX];     // Key values to pick minimum weight edge
-    int mstSet[MAX];  // To represent set of vertices included in MST
+void swap(edg* a,edg *b){
+    edg temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
-    // Initialize all keys as INFINITE and mstSet[] as false
-    for (int i = 0; i < n; i++) {
-        key[i] = INF;
-        mstSet[i] = 0;
-    }
+edg deleteEdge(edg* heap){
+    edg min = heap[0];
+    heap[0] = heap[heapSize-1];
+    heapSize--;
+    return min;
+}
 
-    // Always include the first vertex in MST
-    key[0] = 0;       // Make key 0 so that this vertex is picked as the first vertex
-    parent[0] = -1;   // First node is always the root of MST
-
-    // The MST will have n vertices
-    for (int count = 0; count < n - 1; count++) {
-        // Pick the minimum key vertex from the set of vertices not yet included in MST
-        int min = INF, u;
-
-        for (int v = 0; v < n; v++)
-            if (mstSet[v] == 0 && key[v] < min)
-                min = key[v], u = v;
-
-        // Add the picked vertex to the MST Set
-        mstSet[u] = 1;
-
-        // Update the key and parent index of the adjacent vertices
-        for (int v = 0; v < n; v++) {
-            count++;  // Increment the operation count for each edge check
-
-            if (graph[u][v] && mstSet[v] == 0 && graph[u][v] < key[v])
-                parent[v] = u, key[v] = graph[u][v];
-        }
+void heapify(edg* heap,int sz,int root){
+    int smallest=root, left = 2*root+1, right = 2*root+2;
+    heapCount++;
+    if(left < sz && heap[left].dist < heap[smallest].dist)
+        smallest = left;
+    if(right < sz && heap[right].dist < heap[smallest].dist)
+        smallest = right;
+    if(smallest != root){
+        swap(&heap[smallest],&heap[root]);
+        heapify(heap,sz,smallest);
     }
 }
 
-// Function to generate graphs and plot results
-void ploter(int k) {
-    // Open files for appending results
-    FILE *f1 = fopen("PrimBEST.txt", "a");  // File for best-case results
-    FILE *f2 = fopen("PrimWORST.txt", "a"); // File for worst-case results
-
-    if (f1 == NULL || f2 == NULL) {
-        printf("Error opening file.\n");
-        exit(1);
-    }
-
-    int v;
-
-    // Loop to generate and analyze graphs of increasing size
-    for (int i = 1; i <= 10; i++) {
-        v = i;
-
-        // Variable-Length Array for adjacency matrix
-        int arr[v][v];
-
-        // Generate graph based on the type
-        if (k == 0) {  // Sparse graph (best-case scenario)
-            for (int i = 0; i < v; i++) {
-                for (int j = 0; j < v; j++) {
-                    if (i == j) {
-                        arr[i][j] = 0;  // No self-loops
-                    } else if (abs(i - j) == 1) {
-                        arr[i][j] = rand() % 10 + 1;  // Connect adjacent nodes with small random weights
-                    } else {
-                        arr[i][j] = INF;  // No direct connection
-                    }
-                }
-            }
-        }
-
-        if (k == 1) {  // Dense graph (worst-case scenario)
-            for (int i = 0; i < v; i++) {
-                for (int j = 0; j < v; j++) {
-                    if (i != j) {
-                        arr[i][j] = rand() % 10 + 1;  // Connect all nodes with random weights
-                    } else {
-                        arr[i][j] = 0;  // No self-loops
-                    }
-                }
-            }
-        }
-
-        // Copy the generated graph to the global graph array
-        for (int i = 0; i < v; i++) {
-            for (int j = 0; j < v; j++) {
-                graph[i][j] = arr[i][j];
-            }
-        }
-
-        // Reset the count for each graph size
-        count = 0;
-
-        // Perform Prim's algorithm
-        prim(v);
-
-        // Output results to the appropriate file
-        if (k == 0) {
-            fprintf(f1, "%d\t%d\n", v, count);  // Best-case results
-        } else {
-            fprintf(f2, "%d\t%d\n", v, count);  // Worst-case results
-        }
-    }
-
-    fclose(f1);
-    fclose(f2);
+void heapSort(edg* heap,int sz){
+    for(int i=sz/2-1;i>=0;i--)
+        heapify(heap,sz,i);
 }
 
-// Main function to generate plots for best and worst-case scenarios
-int main() {
-    for (int i = 0; i < 2; i++) {
-        ploter(i);
+void prims()
+{
+    visited[0]=1;
+    heap[heapSize].v = -1; 
+    heap[heapSize].u = 0; 
+    heap[heapSize].dist = 0;
+    heapSize++;
+    while(cnt != n){
+        edg min = deleteEdge(heap);
+        vt[cnt].v = min.v;
+        vt[cnt].u = min.u;
+        vt[cnt].dist = min.dist;
+        int par = vt[cnt].u; removed[par]=1;cnt++;
+        for(int i=1;i<n;i++){
+            graphCount++;
+            if(!visited[i] && cost[par][i] != INT_MAX && !removed[i]){
+                visited[i] = 1;
+                heap[heapSize].v = par;
+                heap[heapSize].u = i;
+                heap[heapSize].dist = cost[par][i];
+                heapSize++;
+            }
+            else if(visited[i] && cost[par][i] != INT_MAX && !removed[i]){
+                for(int j=0;j<heapSize;j++){
+                    if(heap[j].u==i && cost[par][i] < heap[j].dist){
+                        heap[j].dist = cost[par][i];
+                        heap[j].v = par;break;
+                    }
+                }
+            }
+        }heapSort(heap,heapSize);
+    } 
+}
+
+void makeGraph(){
+    heapSize=0;heapCount=0;cnt=0;graphCount=0;
+    printf("\nEnter the no of vertices : ");
+    scanf("%d",&n);
+    printf("\nEnter the cost adjacency matrix : \n");
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            scanf("%d",&cost[i][j]);
+            if(cost[i][j] == 0)
+                cost[i][j] = INT_MAX;
+        }visited[i]=0;removed[i]=0;
     }
+}
 
-    // Notify user that data has been written to files
-    printf("DATA ENTERED INTO THE FILE\n");
+void tester(){
+    int sum=0;
+    makeGraph();
+    prims();
+    for(int i=1;i<n;i++){
+        printf("\n%c-->%c == %d\n",vt[i].v+65,vt[i].u+65,vt[i].dist);
+        sum += vt[i].dist;
+    }
+    printf("\nThe minimum cost is %d",sum);
+}
 
-    return 0;
+void plotter(){
+    FILE * f1;
+    f1 = fopen("prims.txt","w");
+    for(n=4;n<=10;n++){
+        heapSize=0;heapCount=0;cnt=0;graphCount=0;
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                cost[i][j] = rand()%n;
+                if(i == j || cost[i][j]==0)
+                    cost[i][j] = INT_MAX;
+            }visited[i]=0;removed[i]=0;
+        }
+        prims();
+        cnt = (graphCount>heapCount)?graphCount:heapCount;
+        fprintf(f1,"%d\t%d\n",n,cnt);
+    }fclose(f1);
+}
+
+void main(){
+    int ch;
+    while (1)
+    {
+        printf("\nEnter \n1.For tester \n2.For plotter \n3.To exit  ");
+        scanf("%d",&ch);
+        switch (ch)
+        {
+        case 1:
+            tester();
+            break;
+        
+        case 2:
+            plotter();
+            printf("\nGraph plotted!");
+            break;
+        
+        case 3: exit(0);
+        
+        default:
+            break;
+        }
+    }
+    
 }
