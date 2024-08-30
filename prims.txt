@@ -1,0 +1,130 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX 100
+#define INF 9999
+
+int graph[MAX][MAX], visited[MAX], count = 0;
+
+// Function to perform Prim's algorithm
+void prim(int n) {
+    int parent[MAX];  // Array to store the MST
+    int key[MAX];     // Key values to pick minimum weight edge
+    int mstSet[MAX];  // To represent set of vertices included in MST
+
+    // Initialize all keys as INFINITE and mstSet[] as false
+    for (int i = 0; i < n; i++) {
+        key[i] = INF;
+        mstSet[i] = 0;
+    }
+
+    // Always include the first vertex in MST
+    key[0] = 0;       // Make key 0 so that this vertex is picked as the first vertex
+    parent[0] = -1;   // First node is always the root of MST
+
+    // The MST will have n vertices
+    for (int count = 0; count < n - 1; count++) {
+        // Pick the minimum key vertex from the set of vertices not yet included in MST
+        int min = INF, u;
+
+        for (int v = 0; v < n; v++)
+            if (mstSet[v] == 0 && key[v] < min)
+                min = key[v], u = v;
+
+        // Add the picked vertex to the MST Set
+        mstSet[u] = 1;
+
+        // Update the key and parent index of the adjacent vertices
+        for (int v = 0; v < n; v++) {
+            count++;  // Increment the operation count for each edge check
+
+            if (graph[u][v] && mstSet[v] == 0 && graph[u][v] < key[v])
+                parent[v] = u, key[v] = graph[u][v];
+        }
+    }
+}
+
+// Function to generate graphs and plot results
+void ploter(int k) {
+    // Open files for appending results
+    FILE *f1 = fopen("PrimBEST.txt", "a");  // File for best-case results
+    FILE *f2 = fopen("PrimWORST.txt", "a"); // File for worst-case results
+
+    if (f1 == NULL || f2 == NULL) {
+        printf("Error opening file.\n");
+        exit(1);
+    }
+
+    int v;
+
+    // Loop to generate and analyze graphs of increasing size
+    for (int i = 1; i <= 10; i++) {
+        v = i;
+
+        // Variable-Length Array for adjacency matrix
+        int arr[v][v];
+
+        // Generate graph based on the type
+        if (k == 0) {  // Sparse graph (best-case scenario)
+            for (int i = 0; i < v; i++) {
+                for (int j = 0; j < v; j++) {
+                    if (i == j) {
+                        arr[i][j] = 0;  // No self-loops
+                    } else if (abs(i - j) == 1) {
+                        arr[i][j] = rand() % 10 + 1;  // Connect adjacent nodes with small random weights
+                    } else {
+                        arr[i][j] = INF;  // No direct connection
+                    }
+                }
+            }
+        }
+
+        if (k == 1) {  // Dense graph (worst-case scenario)
+            for (int i = 0; i < v; i++) {
+                for (int j = 0; j < v; j++) {
+                    if (i != j) {
+                        arr[i][j] = rand() % 10 + 1;  // Connect all nodes with random weights
+                    } else {
+                        arr[i][j] = 0;  // No self-loops
+                    }
+                }
+            }
+        }
+
+        // Copy the generated graph to the global graph array
+        for (int i = 0; i < v; i++) {
+            for (int j = 0; j < v; j++) {
+                graph[i][j] = arr[i][j];
+            }
+        }
+
+        // Reset the count for each graph size
+        count = 0;
+
+        // Perform Prim's algorithm
+        prim(v);
+
+        // Output results to the appropriate file
+        if (k == 0) {
+            fprintf(f1, "%d\t%d\n", v, count);  // Best-case results
+        } else {
+            fprintf(f2, "%d\t%d\n", v, count);  // Worst-case results
+        }
+    }
+
+    fclose(f1);
+    fclose(f2);
+}
+
+// Main function to generate plots for best and worst-case scenarios
+int main() {
+    for (int i = 0; i < 2; i++) {
+        ploter(i);
+    }
+
+    // Notify user that data has been written to files
+    printf("DATA ENTERED INTO THE FILE\n");
+
+    return 0;
+}
