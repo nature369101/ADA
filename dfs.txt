@@ -1,0 +1,68 @@
+#include<stdio.h>
+#include<stdlib.h>
+int comp=0,vo=0,cycles=0;
+int count=0;
+void dfs(int n,int g[n][n]);
+void dfsutil(int n,int g[n][n],int cur,int par,int vis[]);
+void plotter(){
+	FILE *fp1=fopen("dfs1.txt","w");
+	FILE *fp2=fopen("dfs2.txt","w");
+	for(int n=10;n<=100;n+=10){
+		int g[n][n];
+		count=0;
+		for(int i=0;i<n;i++){
+			for(int j=0;j<n;j++){
+		                g[i][j]=1;
+			}
+	                g[i][i]=0;
+		}
+		dfs(n,g);
+		fprintf(fp1,"%d\t%d\n",n,count);
+		count=0;
+		for(int i=0;i<n;i++){
+                        for(int j=0;j<n;j++){
+                                g[i][j]=0;
+                        }
+                        if(i!=n-1){
+				g[i][i+1]=1;
+				g[i+1][i]=1;
+			}
+                }
+                dfs(n,g);
+                fprintf(fp2,"%d\t%d\n",n,count);
+	}
+	fclose(fp1);
+	fclose(fp2);
+}
+void main(){
+	plotter();
+}
+void dfs(int n,int g[n][n]){
+	int vis[n];
+	for(int i=0;i<n;i++){
+		vis[i]=0;
+	}
+	for(int i=0;i<n;i++){
+		if(!vis[i]){
+			//printf("Component %d : ",++comp);
+			dfsutil(n,g,i,-1,vis);
+			//printf("\n");
+		}
+	}
+	//printf("Total number of independent cycles : %d \n",cycles);
+	//printf("Total number of components : %d\n",comp);
+}
+void dfsutil(int n,int g[n][n],int cur,int par,int vis[]){
+	vis[cur]=vis[par]+1;
+	//printf("%c ",cur+65);
+	for(int i=0;i<n;i++){
+	        count++;
+		if(g[cur][i]){
+			if(vis[i] && vis[cur]-vis[i]>1){
+				cycles++;
+			}else if(!vis[i]){
+				dfsutil(n,g,i,cur,vis);
+			}
+		}
+	}
+}
