@@ -1,0 +1,75 @@
+#include<stdio.h>
+#include<stdlib.h>
+int comp=0,vo=0,cycles=0;
+int count=0;
+void bfs(int n,int g[n][n]);
+void bfsutil(int n,int g[n][n],int cur,int vis[]);
+void plotter(){
+	FILE *fp1=fopen("bfs1.txt","w");
+	FILE *fp2=fopen("bfs2.txt","w");
+	for(int n=10;n<=100;n+=10){
+		int g[n][n];
+		count=0;
+		for(int i=0;i<n;i++){
+			for(int j=0;j<n;j++){
+		                g[i][j]=1;
+			}
+	                g[i][i]=0;
+		}
+		bfs(n,g);
+		fprintf(fp1,"%d\t%d\n",n,count);
+		count=0;
+		for(int i=0;i<n;i++){
+                        for(int j=0;j<n;j++){
+                                g[i][j]=0;
+                        }
+                        if(i!=n-1){
+				g[i][i+1]=1;
+				g[i+1][i]=1;
+			}
+                }
+                bfs(n,g);
+                fprintf(fp2,"%d\t%d\n",n,count);
+	}
+	fclose(fp1);
+	fclose(fp2);
+}
+void main(){
+	plotter();
+}
+void bfs(int n,int g[n][n]){
+	int vis[n];
+	for(int i=0;i<n;i++){
+		vis[i]=0;
+	}
+	for(int i=0;i<n;i++){
+		if(!vis[i]){
+			//printf("Component %d : ",++comp);
+			bfsutil(n,g,i,vis);
+			//printf("\n");
+		}
+	}
+	//printf("Total number of independent cycles : %d \n",cycles);
+	//printf("Total number of components : %d\n",comp);
+}
+void bfsutil(int n,int g[n][n],int cur,int vis[]){
+	vis[cur]=++vo;
+	int q[n],f=0,r=0;
+	q[f]=cur;
+	//printf("%c ",cur+65);
+	while(f<=r){
+	        int curnode=q[f++];
+	        for(int i=0;i<n;i++){
+	                count++;
+	                if(g[curnode][i]){
+			         if(vis[i] && vis[i]>vis[curnode]){
+				             cycles++;
+			         }else if(!vis[i]){
+				             //printf("%c ",i+65);
+				             vis[i]=++vo;
+				             q[++r]=i;
+			         }
+		        }
+	        }
+        }
+}
