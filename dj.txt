@@ -1,0 +1,153 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<limits.h>
+
+typedef struct vert
+{
+    int id,dist;
+}ver;
+
+ver heap[10];
+int n,cost[10][10],removed[10],d[10],src,heapSize,heapCount,cnt,graphCount;
+
+void swap(ver* a,ver* b){
+    ver temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void makeGraph()
+{
+    cnt=0;heapSize=0;heapCount=0;graphCount=0;
+    printf("\nEnter the no of vertices : ");
+    scanf("%d",&n);
+    printf("\nEnter the cost adjacency matrix : \n");
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            scanf("%d",&cost[i][j]);
+            if(cost[i][j] == 0)
+                cost[i][j] = INT_MAX;
+        }
+        removed[i]=0;
+    }
+    printf("\nEnter the src : ");
+    scanf("%d",&src);
+}
+
+ver deleteVet(ver* heap){
+    ver min = heap[0];
+    heap[0] = heap[heapSize-1];
+    heapSize--;
+    return min;
+}
+
+void heapify(ver* heap,int root){
+    int sm = root,left=root*2+1,right=root*2+2;
+    heapCount++;
+    if(left<heapSize && heap[left].dist < heap[sm].dist)
+        sm = left;
+    if(right<heapSize && heap[right].dist < heap[sm].dist)
+        sm = right;
+    if(sm != root){
+        swap(&heap[root] , &heap[sm]);
+        heapify(heap,sm);
+    }
+}
+
+void heapSort(ver* heap){
+    for (int i = heapSize/2-1; i >= 0; i--)
+    {
+        heapify(heap,i);
+    }
+}
+
+void dijkstras()
+{
+    for(int i=0;i<n;i++){
+        heap[i].id = i;
+        heap[i].dist = INT_MAX;
+        d[i] = INT_MAX;
+    }
+    d[src] = 0;
+    heapSize=n;
+    heap[src].dist = 0;
+    heapSort(heap);
+    while(cnt != n){
+        ver min = deleteVet(heap);
+        int u = min.id;
+        removed[u]=1;
+        cnt++;
+        for(int i=1;i<n;i++){
+            graphCount++;
+            if(!removed[i] && cost[u][i]!=INT_MAX){
+                if(d[u]+cost[u][i] < d[i]){
+                    d[i] = d[u] + cost[u][i];
+                    for(int j=0;j<heapSize;j++){
+                        if(heap[j].id == i){
+                            heap[j].dist = d[i];break;
+                        }
+                    }
+                    heapSort(heap);
+                }
+            }
+            
+        }
+    }
+}
+
+void tester()
+{
+    makeGraph();
+    dijkstras();
+    printf("\nShortest path from source %d is : ",src);
+    for(int i=0;i<n;i++){
+        if(i!=src)
+            printf("\n%c-->%c == %d ",src+65,i+65,d[i]);
+    }
+}
+
+void plotter()
+{
+    FILE *fp;
+    fp = fopen("dj.txt","w");
+    for(n=4;n<10;n++){
+        cnt=0;heapSize=0;heapCount=0;graphCount=0;
+        for(int i=0;i<n;i++){
+            for(int j=i+1;j<n;j++){
+                cost[i][j] = rand()%n;
+                if(i==j || cost[i][j] == 0)
+                    cost[i][j] = INT_MAX;
+            }removed[i]=0;
+        }
+        src = 0;
+        dijkstras();
+        cnt = (graphCount > heapCount)?graphCount:heapCount;
+        fprintf(fp,"%d\t%d\n",n,cnt);
+    }
+}
+
+void main(){
+    int ch;
+    while (1)
+    {
+        printf("\nEnter \n1.For tester \n2.For plotter \n3.To exit  ");
+        scanf("%d",&ch);
+        switch (ch)
+        {
+        case 1:
+            tester();
+            break;
+        
+        case 2:
+            plotter();
+            printf("\nGraph plotted!");
+            break;
+        
+        case 3: exit(0);
+        
+        default:
+            break;
+        }
+    }
+    
+}
