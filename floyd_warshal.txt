@@ -1,0 +1,172 @@
+//floyds
+#include<stdio.h>
+ #include<stdlib.h>
+
+ int graph[30][30],p[30][30],Count;
+
+ int Min(int a,int b){
+    return (a<b)?a:b;
+ }
+
+
+ void floyd(int n){
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++)
+            p[i][j] = graph[i][j];
+    }
+    for(int k=0;k<n;k++){
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                Count++;
+                p[i][j] = Min(p[i][j] , (p[i][k] + p[k][j]));
+            }
+        }
+    }
+}
+
+void tester()
+{
+        printf("\nEnter the no. of vertices ");
+        int n;
+        scanf("%d",&n);
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++)
+                scanf("%d",&graph[i][j]);
+        }
+        Count = 0;
+        floyd(n);
+        printf("\nThe shortest path matrix is :\n");
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++)
+                printf("%d  ",p[i][j]);
+            printf("\n");
+        }
+}
+
+void plotter()
+{
+    FILE *fp;
+    fp = fopen("floydsB.txt","w");
+    for(int n=2;n<=20;n+=2){
+            Count = 0;
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                if(i == j)
+                    graph[i][j] = 0;
+                else
+                    graph[i][j] = rand()%1000;
+            }
+        }
+        floyd(n);
+        fprintf(fp , "%d\t%d\n" , n,Count);
+    }fclose(fp);
+    printf("\nGraph plotted!!");
+}
+
+void main()
+{
+    while(1){
+        int ch;
+        printf("\nEnter 1.for tester 2.for plotter 3.to exit  ");
+        scanf("%d",&ch);
+        switch(ch){
+            case 1 : tester();break;
+            case 2 : plotter();break;
+            case 3 : exit(0);
+            default : printf("\nInvalid input ");
+        }
+    }
+
+}
+
+//Warshall
+#include<stdio.h>
+#include<stdlib.h>
+
+int graph[30][30],t[30][30],Count;
+
+void warshall(int n)
+{
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++)
+            t[i][j] = graph[i][j];
+    }
+    for(int k=0;k<n;k++){
+        for(int i=0;i<n;i++){
+            if(t[i][k]!=0){
+                for(int j=0;j<n;j++){
+                    Count++;
+                    t[i][j] = t[i][j] || (t[i][k] && t[k][j]);
+                }
+            }
+        }
+    }
+}
+
+void tester()
+{
+    printf("\nEnter the no of vertices ");
+    int n;
+    scanf("%d",&n);
+    printf("\nEnter the adjacency matrix \n");
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++)
+            scanf("%d",&graph[i][j]);
+    }
+    warshall(n);
+    printf("\nThe transitive closure is :\n");
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++)
+            printf("%d  ",t[i][j]);
+        printf("\n");
+    }
+}
+
+void plotter()
+{
+    FILE *fp,*fp2;
+    fp = fopen("warshallB.txt","w");
+    fp2 = fopen("warshallW.txt","w");
+    for(int k=0;k<2;k++){
+        for(int n=1;n<=10;n+=1){
+            Count = 0;
+            if(k == 1){
+                for(int i=0;i<n;i++){
+                    for(int j=0;j<n;j++){
+                        if (i!=j)
+                            graph[i][j] = 1;
+                        else
+                            graph[i][j] = 0;
+                    }
+                }
+            }
+            else{
+                for(int i=0;i<n;i++){
+                    for(int j=0;j<n;j++)
+                            graph[i][j] = 0;
+                    graph[i][i+1] = 1;
+                }
+            }
+            warshall(n);
+            if(k == 0)
+                fprintf(fp,"%d\t%d\n",n,Count);
+            else
+                fprintf(fp2,"%d\t%d\n",n,Count);
+        }
+    }
+}
+
+void main()
+{
+    while(1){
+        printf("\nEnter 1.for plotter 2.for tester 3.To exit  ");
+        int ch;
+        scanf("%d",&ch);
+        switch(ch){
+            case 1 : plotter();break;
+            case 2 : tester();break;
+            case 3 : exit(0);
+            default : printf("\nInvalid input");
+        }
+    }
+}
